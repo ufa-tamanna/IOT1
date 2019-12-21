@@ -1,0 +1,57 @@
+<body onload="doIt()">
+  <table id="table" border="1">
+    <tr>
+      <th>Temperature</th>
+      <th>Humidity</th>
+      <th>Creation time</th>
+  </tr>
+  </table>
+</body>
+
+
+<script type="text/javascript">
+function doIt() {
+  const url = "https://api.thingspeak.com/channels/941040/feeds.json?api_key=7VTK47JL4SNHSYQ1";
+  window.fetch(url).then(function(response) {
+      return response.json();
+    }).then(function(data) {
+      const tableDOM = document.getElementById('table');
+      const len = tableDOM.rows.length
+      for(let i = 0; i < len-1; i++) {
+        tableDOM.deleteRow(-1)
+      }
+
+      const feeds = data.feeds;
+      // iterate in reverse order to show the latest data first
+      for(i = feeds.length-1; i >= 0; i--) {
+        // check that data is no older than 7 days
+        const created_at = feeds[i].created_at;
+        const now_time = new Date();
+        const diff = now_time - new Date(created_at); // difference in milli seconds
+        
+        const num_days = 7;
+        const hours_in_one_day = 24;
+        const diff_in_num_hours = diff / 1000 / 60 / 60;
+        
+        const diff_hours = num_days * hours_in_one_day;
+        
+        if( diff_in_num_hours > diff_hours) {
+          break;
+        }
+
+        const row = tableDOM.insertRow();
+
+        const timestamp_col = row.insertCell(0);
+        const hum_col = row.insertCell(0);
+        const temp_col = row.insertCell(0);
+
+        temp_col.innerHTML = feeds[i].field1;
+        hum_col.innerHTML = feeds[i].field2;
+        timestamp_col.innerHTML = new Date(created_at).toLocaleString("en-GB", { timeZone: 'Asia/Dhaka' });
+      }
+    }).catch(function(e) {
+      console.log("error: " + e);
+  });
+
+}
+</script>
